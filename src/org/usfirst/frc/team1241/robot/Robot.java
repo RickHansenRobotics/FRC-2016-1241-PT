@@ -1,6 +1,8 @@
 
 package org.usfirst.frc.team1241.robot;
 
+import java.util.ArrayList;
+
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Encoder;
@@ -8,9 +10,11 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.networktables2.type.NumberArray;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.tables.TableKeyNotDefinedException;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -40,8 +44,12 @@ public class Robot extends IterativeRobot {
     
     int counter = 0;
     boolean atSpeed = false;
+    double cogx = 0;
+    String direction = "";
     
     PIDController speed;
+    
+    double[] targetNum = new double[8];
 
     /**
      * This function is run when the robot is first started up and should be
@@ -108,7 +116,8 @@ public class Robot extends IterativeRobot {
     /**
      * This function is called periodically during operator control
      */
-    public void teleopPeriodic() {
+    @SuppressWarnings("deprecation")
+	public void teleopPeriodic() {
     	arm.set(oi.getDriveLeftY());
     	
     	if(oi.getDriveRightBumper()) {
@@ -167,6 +176,35 @@ public class Robot extends IterativeRobot {
     	}
     	
     	updateSmartDashboard();
+    	
+    	NetworkTable server = NetworkTable.getTable("SmartDashboard");
+        try{
+    		targetNum = server.getNumberArray("MEQ_COORDINATES");
+    		SmartDashboard.putNumber("number", (double) targetNum[1]);
+        }
+        catch(Exception ex){
+        }
+        try {
+        	double distance = ((targetNum[4] - targetNum[6]) + (targetNum[0]-targetNum[2]))/2;
+        	distance = 20*640/(2*distance*Math.tan(Math.toRadians(20.12)));
+            SmartDashboard.putNumber("Distance", distance);
+        } catch(Exception e){}
+        
+        
+        
+        /*this.cogx = server.getNumber("COG_X",0);
+        if(cogx==0) {
+        	direction = "OUT";
+        }
+        if(cogx < 300) {
+        	direction = "LEFT";
+        }
+        else if(cogx > 400) {
+        	direction = "RIGHT";
+        }
+        else {
+        	direction = "CENTER";
+        }*/
     }
     
     /**
@@ -184,6 +222,8 @@ public class Robot extends IterativeRobot {
     	SmartDashboard.putNumber("RPM", flywheel.getRate()*60/128);
     	SmartDashboard.putNumber("Distance", flywheel.getDistance());
     	SmartDashboard.putBoolean("AT SPEED", atSpeed);
+    	
+    	SmartDashboard.putString("Direction", direction);
     }
     
     public void setSpeed(double setPoint) {
