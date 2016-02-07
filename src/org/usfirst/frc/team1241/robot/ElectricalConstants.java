@@ -74,10 +74,10 @@ public class ElectricalConstants {
 	//******************** Shooter ENCODER CONSTANTS **************************
 	//**************************************************************************
 	public static final int elevPulleyRadius = 2;
-	public static final int elevPulsePerRotation = 128; //encoder pulse per rotation
-	public static final double elevGearRatio = 1/1; //ratio between pulley and encoder
+	public static final int elevPulsePerRotation = 1024; //encoder pulse per rotation
+	public static final double elevGearRatio = 216/14; //ratio between pulley and encoder
 	public static final double elevEncoderPulsePerRot = elevPulsePerRotation*elevGearRatio; //pulse per rotation * gear ratio
-	public static final double elevEncoderDistPerTick =(Math.PI*2*elevPulleyRadius)/elevEncoderPulsePerRot;
+	public static final double elevEncoderDegPerTick = elevEncoderPulsePerRot/360;
 	public static final boolean rightElevEncoderReverse = false; 
 	public static final boolean leftElevEncoderReverse = false;
 }

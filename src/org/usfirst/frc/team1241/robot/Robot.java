@@ -3,12 +3,16 @@ package org.usfirst.frc.team1241.robot;
 
 import java.util.ArrayList;
 
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Ultrasonic;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
+import edu.wpi.first.wpilibj.interfaces.Potentiometer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.networktables2.type.NumberArray;
@@ -24,6 +28,8 @@ import edu.wpi.first.wpilibj.tables.TableKeyNotDefinedException;
  * directory.
  */
 public class Robot extends IterativeRobot {
+	public static Ultrasonic ultra;
+	
 	public static OI oi;
 
     Command autonomousCommand;
@@ -41,6 +47,8 @@ public class Robot extends IterativeRobot {
     CANTalon shooter;
     
     Encoder flywheel;
+    Encoder turret;
+    Potentiometer pot;
     
     int counter = 0;
     boolean atSpeed = false;
@@ -56,6 +64,9 @@ public class Robot extends IterativeRobot {
      * used for any initialization code.
      */
     public void robotInit() {
+    	ultra = new Ultrasonic(6,7);	
+    	ultra.setAutomaticMode(true);
+    	
 		oi = new OI();
         // instantiate the command used for the autonomous period
 		output = new DataOutput("data.txt");
@@ -75,9 +86,12 @@ public class Robot extends IterativeRobot {
 											ElectricalConstants.HOOD_B);
 		
 		flywheel = new Encoder(0,1,false,Encoder.EncodingType.k4X);
+		turret = new Encoder(8,9,false,Encoder.EncodingType.k4X);
+		//turret.setDistancePerPulse(ElectricalConstants.elevEncoderDegPerTick);
 		
 		speed =  new PIDController(0.000015,0.0,0.00001);
 		
+		pot = new AnalogPotentiometer(new AnalogInput(0), 360);
 		//flywheel.setDistancePerPulse(1/128);
     }
 	
@@ -180,13 +194,21 @@ public class Robot extends IterativeRobot {
     	NetworkTable server = NetworkTable.getTable("SmartDashboard");
         try{
     		targetNum = server.getNumberArray("MEQ_COORDINATES");
-    		SmartDashboard.putNumber("number", (double) targetNum[1]);
+    		SmartDashboard.putNumber("number0", (double) targetNum[0]);
+//    		SmartDashboard.putNumber("number1", (double) targetNum[1]);
+//    		SmartDashboard.putNumber("number2", (double) targetNum[2]);
+//    		SmartDashboard.putNumber("number3", (double) targetNum[3]);
+//    		SmartDashboard.putNumber("number4", (double) targetNum[4]);
+//    		SmartDashboard.putNumber("number5", (double) targetNum[5]);
+//    		SmartDashboard.putNumber("number6", (double) targetNum[6]);
+//    		SmartDashboard.putNumber("number7", (double) targetNum[7]);
         }
-        catch(Exception ex){
+        catch(Exception ex) {
+        	System.out.println("Unable to get Coordinates");
         }
         try {
-        	double distance = ((targetNum[4] - targetNum[6]) + (targetNum[0]-targetNum[2]))/2;
-        	distance = 20*640/(2*distance*Math.tan(Math.toRadians(20.12)));
+        	double distance = ((targetNum[0] - targetNum[2]) + (targetNum[6]-targetNum[4]))/2;
+        	distance = 20*640/(2*distance*Math.tan(Math.toRadians(27.98)));
             SmartDashboard.putNumber("Distance", distance);
         } catch(Exception e){}
         
@@ -215,6 +237,9 @@ public class Robot extends IterativeRobot {
     }
     
     public void updateSmartDashboard() {
+    	SmartDashboard.putNumber("Turret",turret.get()/43.8857);
+    	SmartDashboard.putNumber("Ultrasound", ultra.getRangeInches());
+    	
     	if (counter % 10 == 0){
     		output.writeString(counter,""+flywheel.getRate()*60/128);
     	}
@@ -224,6 +249,8 @@ public class Robot extends IterativeRobot {
     	SmartDashboard.putBoolean("AT SPEED", atSpeed);
     	
     	SmartDashboard.putString("Direction", direction);
+    	
+    	SmartDashboard.putDouble("Potentiometer", pot.get());
     }
     
     public void setSpeed(double setPoint) {
