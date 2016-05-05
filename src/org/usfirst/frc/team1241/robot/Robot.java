@@ -192,9 +192,12 @@ public class Robot extends IterativeRobot {
     	updateSmartDashboard();
     	
     	NetworkTable server = NetworkTable.getTable("SmartDashboard");
+    	double clock;
         try{
-    		targetNum = server.getNumberArray("MEQ_COORDINATES");
-    		SmartDashboard.putNumber("number0", (double) targetNum[0]);
+        	clock = server.getDouble("CLOCK_TIME");
+        	SmartDashboard.putNumber("clock", clock);
+//    		targetNum = server.getNumberArray("MEQ_COORDINATES");
+//    		SmartDashboard.putNumber("number0", (double) targetNum[0]);
 //    		SmartDashboard.putNumber("number1", (double) targetNum[1]);
 //    		SmartDashboard.putNumber("number2", (double) targetNum[2]);
 //    		SmartDashboard.putNumber("number3", (double) targetNum[3]);
@@ -236,10 +239,13 @@ public class Robot extends IterativeRobot {
         LiveWindow.run();
     }
     
+    double timer;
     public void updateSmartDashboard() {
     	SmartDashboard.putNumber("Turret",turret.get()/43.8857);
     	SmartDashboard.putNumber("Ultrasound", ultra.getRangeInches());
     	
+    	timer++;
+    	SmartDashboard.putNumber("Timer", timer);
     	if (counter % 10 == 0){
     		output.writeString(counter,""+flywheel.getRate()*60/128);
     	}
